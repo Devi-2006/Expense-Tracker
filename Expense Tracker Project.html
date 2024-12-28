@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    <style>
+        body {
+           
+            margin: 0;
+            padding: 0;
+            background-image:url('https://i.pinimg.com/736x/e9/ca/dc/e9cadc91069c1ad964bf05e2faffcec6.jpg');
+            background-size:cover ;
+            background-repeat: no-repeat;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+          
+            padding: 20px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        h1,h2 {
+            font-family: 'Ink Free', sans-serif;
+            text-align: center;
+            color:white;
+            text-shadow: #ddd;
+            text-decoration: solid;
+        }
+        .form-container {
+            margin-bottom: 15px;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+        button {
+            background-color: #111111;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: white;
+            color: #111111;
+        }
+        ul {
+            padding:none;
+            list-style:o;
+        }
+        h3{
+            font-family:'Times New Roman', Times, serif ;
+        }
+        li {
+            background-color: #f9f9f9;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        li .delete {
+            color: red;
+            font-size: medium;
+            font: sans-serif;
+            font-family: monospace;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .summary-box {
+            background-color: #e9f5e9;
+            padding: 10px;
+            margin-top: 20px;
+            text-align: center;
+            border-radius: 4px;
+        }
+        .summary-box h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Expense Tracker</h1>
+        <div id="salary-section" class="form-container">
+            <input type="number" id="total-salary" placeholder="Enter Total Salary" min="0">
+            <button id="submit-salary">Submit Salary</button>
+        </div>
+        <div id="expense-section" >
+            <div class="form-container">
+                <input type="text" id="expense-description" placeholder="Reason">
+                <input type="number" id="expense-amount" placeholder="Amount" min="0">
+                <input type="date" id="expense-date">
+                <select id="expense-category" placeholder="Category">
+                    <option value=" " disabled selected>Select a category</option>
+                    <option value="food">Food</option>
+                    <option value="transportation">Transportation</option>
+                    <option value="entertainment">Entertainment</option>
+                    <option value="utilities">Utilities</option>
+                    <option value="other">Other</option>
+                </select>
+                <button id="add-expense">Add Expense</button>
+            </div>
+            <h2>Expenses</h2>
+            <ul id="expense-list"></ul>
+            <div class="summary-box">
+                <h3>Total Expenses: $<span id="total-amount">0</span></h3>
+                <h3>Remaining Balance: $<span id="remaining-balance">0</span></h3>
+            </div>
+        </div>
+    </div>
+    <script>
+        const salarySection = document.getElementById('salary-section');
+        const totalSalaryInput = document.getElementById('total-salary');
+        const submitSalaryButton = document.getElementById('submit-salary');
+        const expenseSection = document.getElementById('expense-section');
+        const expenseDescription = document.getElementById('expense-description');
+        const expenseAmount = document.getElementById('expense-amount');
+        const expenseDate = document.getElementById('expense-date');
+        const expenseCategory = document.getElementById('expense-category');
+        const addExpenseButton = document.getElementById('add-expense');
+        const expenseList = document.getElementById('expense-list');
+        const totalAmountDisplay = document.getElementById('total-amount');
+        const remainingBalanceDisplay = document.getElementById('remaining-balance');
+        let expenses = [];
+        let totalSalary = 0;
+        function submitSalary() {
+            const salary = parseFloat(totalSalaryInput.value);
+            if (isNaN(salary) || salary <= 0) {
+                alert('Please enter a valid salary amount.');
+                return;
+            }
+            totalSalary = salary;
+            remainingBalanceDisplay.textContent = totalSalary.toFixed(2);
+            salarySection.style.display = 'none';
+            expenseSection.style.display = 'block';
+        }
+        function renderExpenses() {
+    expenseList.innerHTML = ''; 
+    let total = 0;
+    expenses.forEach((expense, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+            ${expense.description} - $${expense.amount} on ${expense.date} (Category: ${expense.category})
+            <span class="delete" onclick="deleteExpense(${index})">Delete</span>
+        `;
+        expenseList.appendChild(li);
+        total += parseFloat(expense.amount);
+    });
+    totalAmountDisplay.textContent = total.toFixed(2); 
+    calculateRemainingBalance(); 
+}
+        function calculateRemainingBalance() {
+            const totalExpenses = expenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+            remainingBalanceDisplay.textContent = (totalSalary - totalExpenses).toFixed(2);
+        }
+        function addExpense() {
+            const description = expenseDescription.value.trim();
+            const amount = parseFloat(expenseAmount.value);
+            const date = expenseDate.value;
+            const category = expenseCategory.value;
+            if (description === '' || isNaN(amount) || amount <= 0 || date === '') {
+                alert('Please fill in all fields with valid data.');
+                return;
+            }
+            const expense = {
+                description,
+                amount,
+                date,
+                category
+            };
+            expenses.push(expense);
+            renderExpenses();
+            expenseDescription.value = '';
+            expenseAmount.value = '';
+            expenseDate.value = '';
+            expenseCategory.value = 'food'; 
+        }
+        function deleteExpense(index) {
+            expenses.splice(index, 1); 
+            renderExpenses();
+        }
+        submitSalaryButton.addEventListener('click', submitSalary);
+        addExpenseButton.addEventListener('click', addExpense);
+submitSalaryButton.addEventListener('click', submitSalary);
+totalSalaryInput.addEventListener('keypress', function (event) {
+    if (event.key === 'Enter') {
+        submitSalary();
+    }
+});
+        window.onload = function() {
+            salarySection.style.display = 'block';
+            expenseSection.style.display = 'none';
+        };
+    </script>
+</body>
+</html>
